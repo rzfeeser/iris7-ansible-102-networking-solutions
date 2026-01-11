@@ -1,0 +1,35 @@
+---
+- name: Lab - Network checks using ansible.builtin.raw
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: Show network interfaces
+      ansible.builtin.raw: ip addr show
+      register: ip_addr
+
+    - name: Show routing table
+      ansible.builtin.raw: ip route show
+      register: ip_route
+
+    - name: Show DNS resolver config
+      ansible.builtin.raw: cat /etc/resolv.conf
+      register: resolv
+
+    - name: Print interface summary (raw output)
+      ansible.builtin.debug:
+        msg:
+          - "Interfaces (first lines): {{ (ip_addr.stdout_lines | default([]))[:5] }}"
+          - "Routes (first lines): {{ (ip_route.stdout_lines | default([]))[:5] }}"
+          - "Resolver (all lines): {{ resolv.stdout_lines | default([]) }}"
+
+    - name: Non-idempotent example (appends every run)
+      ansible.builtin.raw: "echo '# raw lab test' >> /tmp/raw-network-test.conf"
+      register: append_test
+
+    - name: Show that raw does not enforce state
+      ansible.builtin.debug:
+        msg:
+          - "This task will report a change every time because raw does not check state."
+          - "Return code: {{ append_test.rc }}"
+

@@ -1,0 +1,37 @@
+---
+- name: Lab - Standardize network-style config text with ansible.builtin.replace
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    cfg_path: /etc/iris7-network.conf
+
+  tasks:
+    - name: Ensure config file exists so replace has a target
+      ansible.builtin.file:
+        path: "{{ cfg_path }}"
+        state: touch
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Seed the file with example legacy values (only if missing)
+      ansible.builtin.lineinfile:
+        path: "{{ cfg_path }}"
+        regexp: '^legacy_dns='
+        line: 'legacy_dns=8.8.8.8'
+        create: true
+
+    - name: Replace legacy DNS value with new standard
+      ansible.builtin.replace:
+        path: "{{ cfg_path }}"
+        regexp: '^legacy_dns=8\.8\.8\.8$'
+        replace: 'legacy_dns=1.1.1.1'
+
+    - name: Replace any old NTP domain with a new standard (pattern-based)
+      ansible.builtin.replace:
+        path: "{{ cfg_path }}"
+        regexp: '^ntp_server=.*$'
+        replace: 'ntp_server=time.cloudflare.com'
+

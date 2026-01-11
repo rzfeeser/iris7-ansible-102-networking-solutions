@@ -1,0 +1,41 @@
+- name: Lab - Pokemon lookup with ansible.builtin.uri
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    pokemon: "pikachu"
+
+  tasks:
+    - name: GET Pokemon details
+      ansible.builtin.uri:
+        url: "https://pokeapi.co/api/v2/pokemon/{{ pokemon }}"
+        method: GET
+        return_content: true
+        status_code:
+          - 200
+      register: poke_result
+
+    - name: Display key Pokemon fields
+      ansible.builtin.debug:
+        msg:
+          - "HTTP status: {{ poke_result.status }}"
+          - "Name: {{ poke_result.json.name }}"
+          - "ID: {{ poke_result.json.id }}"
+          - "Height: {{ poke_result.json.height }}"
+          - "Weight: {{ poke_result.json.weight }}"
+
+    - name: Display Pokemon types
+      ansible.builtin.debug:
+        msg: "Type: {{ item.type.name }}"
+      loop: "{{ poke_result.json.types }}"
+
+    - name: Validate Pokemon response shape
+      ansible.builtin.assert:
+        that:
+          - poke_result.status == 200
+          - poke_result.json.name is defined
+          - poke_result.json.id is defined
+          - poke_result.json.types is iterable
+        success_msg: "PokeAPI call succeeded and returned expected fields."
+        fail_msg: "PokeAPI call did not return expected fields."

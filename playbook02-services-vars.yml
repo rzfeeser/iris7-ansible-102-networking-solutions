@@ -1,0 +1,21 @@
+---
+- name: Install services using vars_files
+  hosts: all:!chewie
+  gather_facts: true
+  become: true
+
+  vars_files:
+    - vars/services.yml
+
+  tasks:
+    - name: Install service package
+      ansible.builtin.package:
+        name: "{{ service_package }}"
+        state: present
+
+    - name: Enable and start service
+      ansible.builtin.service:
+        name: "{{ service_name }}"
+        state: started
+        enabled: true
+

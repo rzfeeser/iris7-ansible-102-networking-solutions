@@ -1,0 +1,8 @@
+---
+web_pkg_ubuntu: apache2
+web_svc_ubuntu: apache2
+web_conf_ubuntu: /etc/apache2/sites-available/000-default.conf
+
+web_pkg_redhat: httpd
+web_svc_redhat: httpd
+web_conf_redhat: /etc/httpd/conf.d/iris7-lab.conf

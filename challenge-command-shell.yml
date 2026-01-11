@@ -1,0 +1,15 @@
+---
+- name: Challenge Solution - command vs shell (correct usage)
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: command - create a file only once using creates
+      ansible.builtin.command:
+        cmd: touch /tmp/command-once.txt
+      args:
+        creates: /tmp/command-once.txt
+
+    - name: shell - append a timestamp on every run (non-idempotent)
+      ansible.builtin.shell: "date '+%F %T' >> /tmp/shell-always.txt"
+

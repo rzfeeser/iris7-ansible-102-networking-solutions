@@ -1,0 +1,25 @@
+---
+apps_common:
+  - curl
+  - vim
+  - git
+
+users:
+  - name: luke
+    shell: /bin/bash
+  - name: hansolo
+    shell: /bin/bash
+  - name: chewie
+    shell: /bin/bash
+
+ports_map:
+  web: 8080
+  ssh: 22
+  api: 9000
+
+sites:
+  - name: iris7
+    url: https://iris7.com
+  - name: ansible
+    url: https://docs.ansible.com
+

@@ -1,0 +1,39 @@
+# multivendor-backup.yml
+- name: Multi-vendor configuration backups using ansible_network_os
+  hosts: all
+  gather_facts: false
+
+  vars:
+    backup_root: "{{ playbook_dir }}/backups"
+
+  pre_tasks:
+    - name: Ensure local backup directory exists on controller
+      ansible.builtin.file:
+        path: "{{ backup_root }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: true
+
+  tasks:
+    - name: Backup Cisco IOS / IOS-XE running configuration
+      cisco.ios.ios_config:
+        backup: true
+      when: ansible_network_os is defined and ansible_network_os == "cisco.ios.ios"
+      # just ansible_network_os == "cisco.ios.ios" would be sufficent
+      # but this example shows how to use and logic within a when statement
+      # here both statements need to test as true for the task to run
+
+    - name: Backup Juniper Junos configuration
+      junipernetworks.junos.junos_config:
+        backup: true
+      when: ansible_network_os is defined and ansible_network_os == "junipernetworks.junos.junos"
+
+    - name: Show which backup task executed for this host
+      ansible.builtin.debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "ansible_network_os: {{ ansible_network_os | default('undefined') }}"
+          - "Cisco task ran: {{ ansible_network_os is defined and ansible_network_os.startswith('cisco.ios') }}"
+          - "Juniper task ran: {{ ansible_network_os is defined and ansible_network_os.startswith('junipernetworks.junos') }}"
+

@@ -1,0 +1,21 @@
+---
+- name: Playbook 2 - Copy to localhost (local artifact generation)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Ensure artifacts directory exists locally
+      ansible.builtin.file:
+        path: ./artifacts
+        state: directory
+        mode: "0755"
+
+    - name: Create a local artifact file using copy
+      ansible.builtin.copy:
+        dest: ./artifacts/local-copy-demo.txt
+        mode: "0644"
+        content: |
+          This file was created on localhost by ansible.builtin.copy.
+          This pattern is useful for generating reports, logs, and build artifacts.
+

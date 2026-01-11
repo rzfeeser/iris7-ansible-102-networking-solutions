@@ -1,0 +1,24 @@
+---
+- name: Playbook 1 - Install applications (cross-distro safe)
+  hosts: all
+  gather_facts: true
+  become: true
+
+  vars:
+    apps_common:
+      - curl
+      - vim
+      - git
+
+  tasks:
+    - name: Remove curl-minimal on RHEL-family systems to avoid conflicts
+      ansible.builtin.package:
+        name: curl-minimal
+        state: absent
+      when: ansible_os_family == "RedHat"
+
+    - name: Install common apps
+      ansible.builtin.package:
+        name: "{{ apps_common }}"
+        state: present
+

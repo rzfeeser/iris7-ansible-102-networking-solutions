@@ -1,0 +1,23 @@
+# gather-ios-facts.yml
+- name: Gather facts from Cisco IOS/IOS-XE devices
+  hosts: cisco
+  gather_facts: false
+
+  tasks:
+    - name: Gather Cisco IOS facts
+      cisco.ios.ios_facts:
+        gather_subset:
+          - all
+      register: iosfacts
+
+    - name: Show key facts (hostname, model, version, serial)
+      ansible.builtin.debug:
+        msg:
+          - "Inventory name:  {{ inventory_hostname }}"
+          - "Mgmt IP:         {{ ansible_host }}"
+          - "Hostname:        {{ iosfacts.ansible_facts.ansible_net_hostname | default('unknown') }}"
+          - "Model:           {{ iosfacts.ansible_facts.ansible_net_model | default('unknown') }}"
+          - "OS Version:      {{ iosfacts.ansible_facts.ansible_net_version | default('unknown') }}"
+          - "Serial Number:   {{ iosfacts.ansible_facts.ansible_net_serialnum | default('unknown') }}"
+          - "Image:           {{ iosfacts.ansible_facts.ansible_net_image | default('unknown') }}"
+

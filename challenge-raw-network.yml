@@ -1,0 +1,13 @@
+---
+- name: Challenge Solution - Use raw on starwars group and show listening ports
+  hosts: starwars
+  gather_facts: false
+
+  tasks:
+    - name: Show listening TCP/UDP sockets with ss
+      ansible.builtin.raw: "ss -tuln"
+      register: ss_out
+
+    - name: Display ss output (first 20 lines)
+      ansible.builtin.debug:
+        msg: "{{ (ss_out.stdout_lines | default([]))[:20] }}"

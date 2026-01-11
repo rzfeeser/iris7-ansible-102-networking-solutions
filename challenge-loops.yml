@@ -1,0 +1,21 @@
+---
+# Standalone Challenge Solution Playbook
+# Purpose: Build a list of usernames from a vars_file using loops and set_fact
+
+- name: Challenge Solution - Build username list using loops and set_fact
+  hosts: all
+  gather_facts: false
+
+  vars_files:
+    - vars/loops-data.yml
+
+  tasks:
+    - name: Build a list of usernames from users data
+      ansible.builtin.set_fact:
+        all_usernames: "{{ (all_usernames | default([])) + [item.name] }}"
+      loop: "{{ users }}"
+
+    - name: Display the computed list of usernames
+      ansible.builtin.debug:
+        var: all_usernames
+

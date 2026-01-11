@@ -1,0 +1,37 @@
+- name: Lab - Astronauts in space with ansible.builtin.uri
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: GET astronauts in space
+      ansible.builtin.uri:
+        url: "http://api.open-notify.org/astros.json"
+        method: GET
+        return_content: true
+        status_code:
+          - 200
+      register: astros_result
+
+    - name: Display summary fields
+      ansible.builtin.debug:
+        msg:
+          - "HTTP status: {{ astros_result.status }}"
+          - "Message: {{ astros_result.json.message }}"
+          - "Number of people: {{ astros_result.json.number }}"
+
+    - name: Display astronaut names and craft
+      ansible.builtin.debug:
+        msg: "Astronaut: {{ item.name }} | Craft: {{ item.craft }}"
+      loop: "{{ astros_result.json.people }}"
+
+    - name: Validate astronaut response shape
+      ansible.builtin.assert:
+        that:
+          - astros_result.status == 200
+          - astros_result.json.message is defined
+          - astros_result.json.number is defined
+          - astros_result.json.people is iterable
+          - (astros_result.json.people | length) == (astros_result.json.number | int)
+        success_msg: "Astros API call succeeded and returned expected fields."
+        fail_msg: "Astros API call did not return expected fields."

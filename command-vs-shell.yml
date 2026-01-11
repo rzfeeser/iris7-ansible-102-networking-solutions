@@ -1,0 +1,55 @@
+---
+- name: Lab - command vs shell
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - name: command example - run a simple program (works)
+      ansible.builtin.command: uname -a
+      register: uname_out
+
+    - name: Show uname output
+      ansible.builtin.debug:
+        msg: "{{ uname_out.stdout }}"
+
+    - name: command example - pipe will fail (no shell)
+      ansible.builtin.command: "ip addr | head -n 3"
+      register: cmd_pipe
+      ignore_errors: true
+
+    - name: Show command pipe failure
+      ansible.builtin.debug:
+        msg:
+          - "command return code: {{ cmd_pipe.rc | default('n/a') }}"
+          - "command stderr: {{ cmd_pipe.stderr | default('') }}"
+
+    - name: shell example - pipe works
+      ansible.builtin.shell: "ip addr | head -n 3"
+      register: shell_pipe
+
+    - name: Show shell pipe output
+      ansible.builtin.debug:
+        msg: "{{ shell_pipe.stdout_lines }}"
+
+    - name: shell example - redirect creates a file (not idempotent)
+      ansible.builtin.shell: "echo shell_was_here >> /tmp/shell-demo.txt"
+      register: shell_append
+
+    - name: Show shell append behavior
+      ansible.builtin.debug:
+        msg:
+          - "This task will report changed on every run and will keep appending."
+          - "Return code: {{ shell_append.rc }}"
+
+    - name: command example - guarded with creates (more predictable)
+      ansible.builtin.command: "touch /tmp/creates-demo.txt"
+      args:
+        creates: /tmp/creates-demo.txt
+      register: creates_demo
+
+    - name: Show creates behavior
+      ansible.builtin.debug:
+        msg:
+          - "This task will only run once because creates prevents repeat execution."
+          - "Return code: {{ creates_demo.rc | default('n/a') }}"
+

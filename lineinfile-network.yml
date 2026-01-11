@@ -1,0 +1,45 @@
+---
+- name: Lab - Manage network-style config lines with ansible.builtin.lineinfile
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    cfg_path: /etc/iris7-network.conf
+
+  tasks:
+    - name: Ensure config file exists
+      ansible.builtin.file:
+        path: "{{ cfg_path }}"
+        state: touch
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Ensure an interface description line is present (network-style)
+      ansible.builtin.lineinfile:
+        path: "{{ cfg_path }}"
+        regexp: '^description='
+        line: 'description=IRIS7 lab interface description'
+        create: true
+
+    - name: Ensure a DNS server line is present and correct
+      ansible.builtin.lineinfile:
+        path: "{{ cfg_path }}"
+        regexp: '^dns_server='
+        line: 'dns_server=1.1.1.1'
+        create: true
+
+    - name: Ensure an NTP server line is present and correct
+      ansible.builtin.lineinfile:
+        path: "{{ cfg_path }}"
+        regexp: '^ntp_server='
+        line: 'ntp_server=time.cloudflare.com'
+        create: true
+
+    - name: Ensure deprecated syslog setting is absent
+      ansible.builtin.lineinfile:
+        path: "{{ cfg_path }}"
+        regexp: '^syslog_server=old\.example\.com'
+        state: absent
+

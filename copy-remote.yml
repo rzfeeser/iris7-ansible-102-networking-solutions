@@ -1,0 +1,18 @@
+---
+- name: Playbook 1 - Copy a file to remote hosts
+  hosts: all
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Copy a simple config file to /etc
+      ansible.builtin.copy:
+        dest: /etc/iris7-copy-lab.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          # IRIS7 copy lab file
+          managed_by=ansible
+          purpose=demo_copy_to_remote_hosts
+

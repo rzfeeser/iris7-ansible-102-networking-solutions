@@ -1,0 +1,52 @@
+---
+- name: Challenge - Install Apache/httpd and restart via handler on config change
+  hosts: all:!chewie
+  gather_facts: true
+  become: true
+
+  vars_files:
+    - vars/web.yml
+
+  vars:
+    web_pkg: "{{ (ansible_os_family == 'RedHat') | ternary(web_pkg_redhat, web_pkg_ubuntu) }}"
+    web_svc: "{{ (ansible_os_family == 'RedHat') | ternary(web_svc_redhat, web_svc_ubuntu) }}"
+    web_conf: "{{ (ansible_os_family == 'RedHat') | ternary(web_conf_redhat, web_conf_ubuntu) }}"
+
+  tasks:
+    - name: Install web server package
+      ansible.builtin.package:
+        name: "{{ web_pkg }}"
+        state: present
+
+    - name: Ensure web service is enabled and running
+      ansible.builtin.service:
+        name: "{{ web_svc }}"
+        state: started
+        enabled: true
+
+    - name: Deploy web server configuration (Ubuntu vs CentOS path)
+      ansible.builtin.copy:
+        dest: "{{ web_conf }}"
+        content: |
+          {% if ansible_os_family == "RedHat" %}
+          # IRIS7 handler demo (CentOS/RHEL)
+          Listen 8080
+          <VirtualHost *:8080>
+            DocumentRoot "/var/www/html"
+            ErrorLog logs/error_log
+            CustomLog logs/access_log combined
+          </VirtualHost>
+          {% else %}
+          # IRIS7 handler demo (Ubuntu)
+          Listen 8080
+          <VirtualHost *:8080>
+            DocumentRoot /var/www/html
+          </VirtualHost>
+          {% endif %}
+      notify: Restart web service
+
+  handlers:
+    - name: Restart web service
+      ansible.builtin.service:
+        name: "{{ web_svc }}"
+        state: restarted

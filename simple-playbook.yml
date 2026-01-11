@@ -1,0 +1,16 @@
+---
+- name: Sample playbook to demonstrate execution
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Display the hostname
+      ansible.builtin.debug:
+        msg: "Hostname is {{ ansible_hostname }}"
+
+    - name: Display operating system
+      ansible.builtin.debug:
+        msg: "OS is {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Check uptime
+      ansible.builtin.command: uptime

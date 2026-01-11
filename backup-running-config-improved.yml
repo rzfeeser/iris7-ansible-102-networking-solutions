@@ -1,0 +1,9 @@
+# backup-running-config.yml
+- name: Exploring switches with Ansible - back up running configuration locally (ios_config backup)
+  hosts: cisco
+  gather_facts: false
+
+  tasks:
+    - name: Backup running configuration to the Ansible controller
+      cisco.ios.ios_config:
+        backup: true

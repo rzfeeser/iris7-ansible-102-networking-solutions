@@ -1,0 +1,61 @@
+---
+- name: Lab - Manage network-style config artifacts with ansible.builtin.file
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    backup_root: /var/backups/network
+
+  tasks:
+    - name: Ensure base backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_root }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Ensure per-host backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_root }}/{{ inventory_hostname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create a staged config placeholder file
+      ansible.builtin.file:
+        path: "{{ backup_root }}/{{ inventory_hostname }}/staged.conf"
+        state: touch
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Ensure an obsolete config artifact is absent
+      ansible.builtin.file:
+        path: "{{ backup_root }}/{{ inventory_hostname }}/old.conf"
+        state: absent
+
+    - name: Create a stable symlink that points to the staged config
+      ansible.builtin.file:
+        src: "{{ backup_root }}/{{ inventory_hostname }}/staged.conf"
+        dest: "{{ backup_root }}/{{ inventory_hostname }}/current.conf"
+        state: link
+
+    - name: Ensure local artifacts directory exists on the control node
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/artifacts/{{ inventory_hostname }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: false
+
+    - name: Create a local README placeholder for this host
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/artifacts/{{ inventory_hostname }}/README"
+        state: touch
+        mode: "0644"
+      delegate_to: localhost
+      run_once: false
+

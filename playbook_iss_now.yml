@@ -1,0 +1,34 @@
+- name: Lab - ISS current location with ansible.builtin.uri
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: GET ISS current location
+      ansible.builtin.uri:
+        url: "http://api.open-notify.org/iss-now.json"
+        method: GET
+        return_content: true
+        status_code:
+          - 200
+      register: iss_result
+
+    - name: Display key ISS fields
+      ansible.builtin.debug:
+        msg:
+          - "HTTP status: {{ iss_result.status }}"
+          - "Message: {{ iss_result.json.message }}"
+          - "Timestamp: {{ iss_result.json.timestamp }}"
+          - "Latitude: {{ iss_result.json.iss_position.latitude }}"
+          - "Longitude: {{ iss_result.json.iss_position.longitude }}"
+
+    - name: Validate ISS response shape
+      ansible.builtin.assert:
+        that:
+          - iss_result.status == 200
+          - iss_result.json.message is defined
+          - iss_result.json.timestamp is defined
+          - iss_result.json.iss_position.latitude is defined
+          - iss_result.json.iss_position.longitude is defined
+        success_msg: "ISS API call succeeded and returned expected fields."
+        fail_msg: "ISS API call did not return expected fields."

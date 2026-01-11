@@ -1,0 +1,30 @@
+# backup-running-config.yml
+- name: Exploring switches with Ansible - back up running configuration locally
+  hosts: cisco
+  gather_facts: false
+
+  vars:
+    backup_dir: "{{ playbook_dir }}/backups/running-configs"
+
+  tasks:
+    - name: Ensure local backup directory exists on controller
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Collect running configuration
+      cisco.ios.ios_command:
+        commands:
+          - show running-config
+      register: run_cfg
+
+    - name: Save running configuration to controller (timestamped)
+      ansible.builtin.copy:
+        dest: "{{ backup_dir }}/{{ inventory_hostname }}-running-config-{{ lookup('pipe','date +%Y%m%d-%H%M%S') }}.txt"
+        content: "{{ run_cfg.stdout[0] | default('') }}\n"
+        mode: "0644"
+      delegate_to: localhost
+
