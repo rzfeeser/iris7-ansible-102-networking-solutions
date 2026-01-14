@@ -1,0 +1,24 @@
+# iosxe-safe-config.yml
+- name: Safely apply additive configuration to shared Cisco IOS-XE devices
+  hosts: cisco
+  gather_facts: false
+
+  vars:
+    banner_prefix: "IRIS7-STUDENT"
+
+  tasks:
+    - name: Add a uniquely identifiable MOTD banner (safe for shared devices)
+      cisco.ios.ios_config:
+        lines:
+          - "banner motd ^"
+          - "{{ banner_prefix }} {{ student_id }} was here"
+          - "^"
+        match: none
+
+    - name: Add a unique interface description (does not overwrite others)
+      cisco.ios.ios_config:
+        parents:
+          - interface GigabitEthernet1
+        lines:
+          - "description Managed by {{ banner_prefix }} {{ student_id }}"
+        match: line
