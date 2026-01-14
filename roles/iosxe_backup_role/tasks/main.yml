@@ -1,0 +1,12 @@
+# roles/iosxe_backup_role/tasks/main.yml
+- name: Ensure local backup directory exists on controller
+  ansible.builtin.file:
+    path: "{{ iosxe_backup_dir }}"
+    state: directory
+    mode: "0755"
+  delegate_to: localhost
+  run_once: true
+
+- name: Back up running configuration to the controller (Ansible-managed backup file)
+  cisco.ios.ios_config:
+    backup: true
