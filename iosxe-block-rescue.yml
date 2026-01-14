@@ -1,0 +1,37 @@
+# iosxe-block-rescue.yml
+- name: Simulate failure + recovery during IOS-XE configuration change
+  hosts: cisco
+  gather_facts: false
+
+  vars:
+    tag_prefix: "IRIS7-STUDENT"
+
+  tasks:
+    - name: Apply change, then force failure, then recover (undo change)
+      block:
+        - name: Add a uniquely identifiable configuration line (safe for shared devices)
+          cisco.ios.ios_config:
+            parents:
+              - interface GigabitEthernet1
+            lines:
+              - "description {{ tag_prefix }} {{ student_id }} temporary change"
+            match: line
+
+        - name: mimic a playbook failure during configuration change
+          ansible.builtin.fail:
+            msg: "Intentional failure after config change to demonstrate block/rescue rollback."
+
+      rescue:
+        - name: Mock recovery - undo the interface description change
+          cisco.ios.ios_config:
+            parents:
+              - interface GigabitEthernet1
+            lines:
+              - "no description {{ tag_prefix }} {{ student_id }} temporary change"
+            match: line
+
+        - name: Show recovery message
+          ansible.builtin.debug:
+            msg:
+              - "Recovery executed for {{ inventory_hostname }}."
+              - "Removed the temporary description tagged: {{ tag_prefix }} {{ student_id }}."
