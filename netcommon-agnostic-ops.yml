@@ -1,0 +1,71 @@
+# netcommon-agnostic-ops.yml
+- name: Vendor-agnostic network operations with ansible.netcommon
+  hosts: cisco
+  gather_facts: false
+
+  vars:
+    tag_prefix: "IRIS7-STUDENT"
+    target_interface: "GigabitEthernet1"
+    desired_description: "{{ tag_prefix }} {{ student_id }} netcommon-lab"
+
+  pre_tasks:
+    - name: Precheck - student_id must be defined
+      ansible.builtin.assert:
+        that:
+          - student_id is defined
+          - student_id | length > 0
+        fail_msg: "student_id is required. Provide -e @student_vars.yml with student_id set."
+        success_msg: "student_id is defined."
+
+    - name: Precheck - ansible_network_os must be defined
+      ansible.builtin.assert:
+        that:
+          - ansible_network_os is defined
+        fail_msg: "ansible_network_os must be set in network_inventory.ini."
+        success_msg: "ansible_network_os is defined."
+
+  tasks:
+    - name: Gather normalized network facts (when supported)
+      ansible.netcommon.network_facts:
+      register: nfacts
+
+    - name: Show a few normalized facts
+      ansible.builtin.debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "IP:   {{ ansible_host }}"
+          - "Facts keys: {{ (nfacts.ansible_facts.keys() | list) if (nfacts.ansible_facts is defined) else [] }}"
+
+    - name: Run vendor-agnostic show commands
+      ansible.netcommon.cli_command:
+        command: "{{ item }}"
+      loop:
+        - show version
+        - show ip interface brief
+      register: show_out
+
+    - name: Display show command outputs (trimmed)
+      ansible.builtin.debug:
+        msg:
+          - "show version (first 8 lines):"
+          - "{{ (show_out.results[0].stdout.splitlines()[:8] | join('\n')) if (show_out.results[0].stdout is defined) else '' }}"
+          - "show ip interface brief:"
+          - "{{ show_out.results[1].stdout | default('') }}"
+
+    - name: Apply safe, additive config using vendor-agnostic cli_config
+      ansible.netcommon.cli_config:
+        config: |
+          interface {{ target_interface }}
+           description {{ desired_description }}
+
+    - name: Validate the description exists (vendor-agnostic)
+      ansible.netcommon.cli_command:
+        command: "show running-config interface {{ target_interface }}"
+      register: verify
+
+    - name: Assert the unique description is present
+      ansible.builtin.assert:
+        that:
+          - verify.stdout is search("description {{ tag_prefix }} {{ student_id }}")
+        fail_msg: "Expected description not found on {{ target_interface }}."
+        success_msg: "Unique description verified on {{ target_interface }}."
