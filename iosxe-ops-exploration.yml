@@ -1,0 +1,91 @@
+# iosxe-ops-exploration.yml
+- name: Explore additional operations with cisco.ios on Catalyst 8000V (IOS-XE)
+  hosts: cisco
+  gather_facts: false
+
+  vars:
+    backup_root: "{{ playbook_dir }}/backups"
+    tag_prefix: "IRIS7-STUDENT"
+    target_interface: "GigabitEthernet1"
+    safe_description: "{{ tag_prefix }} {{ student_id }} ops-lab"
+
+  pre_tasks:
+    - name: Precheck - student_id must be defined
+      ansible.builtin.assert:
+        that:
+          - student_id is defined
+          - student_id | length > 0
+        fail_msg: "student_id is required. Provide -e @student_vars.yml with student_id set."
+        success_msg: "student_id is defined."
+
+    - name: Ensure local backup directory exists on controller
+      ansible.builtin.file:
+        path: "{{ backup_root }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: true
+
+  tasks:
+    - name: Gather IOS-XE facts
+      cisco.ios.ios_facts:
+        gather_subset:
+          - all
+      register: facts_out
+
+    - name: Show key facts (hostname, version, model)
+      ansible.builtin.debug:
+        msg:
+          - "Host:     {{ inventory_hostname }}"
+          - "IP:       {{ ansible_host }}"
+          - "Hostname: {{ facts_out.ansible_facts.ansible_net_hostname | default('unknown') }}"
+          - "Model:    {{ facts_out.ansible_facts.ansible_net_model | default('unknown') }}"
+          - "Version:  {{ facts_out.ansible_facts.ansible_net_version | default('unknown') }}"
+
+    - name: Run common operational show commands
+      cisco.ios.ios_command:
+        commands:
+          - show version
+          - show ip interface brief
+          - show inventory
+      register: show_out
+
+    - name: Display summarized operational output (first lines)
+      ansible.builtin.debug:
+        msg:
+          - "show version (first 8 lines):"
+          - "{{ (show_out.stdout[0].splitlines()[:8] | join('\n')) if (show_out.stdout[0] is defined) else '' }}"
+          - "show ip interface brief:"
+          - "{{ show_out.stdout[1] | default('') }}"
+          - "show inventory (first 10 lines):"
+          - "{{ (show_out.stdout[2].splitlines()[:10] | join('\n')) if (show_out.stdout[2] is defined) else '' }}"
+
+    - name: Apply a safe, additive config change (unique interface description)
+      cisco.ios.ios_config:
+        parents:
+          - "interface {{ target_interface }}"
+        lines:
+          - "description {{ safe_description }}"
+        match: line
+
+    - name: Save configuration on the device (write memory)
+      cisco.ios.ios_command:
+        commands:
+          - write memory
+
+    - name: Back up running configuration to the controller
+      cisco.ios.ios_config:
+        backup: true
+
+    - name: Postcheck - verify the interface description is present
+      cisco.ios.ios_command:
+        commands:
+          - "show running-config interface {{ target_interface }}"
+      register: post_intf
+
+    - name: Assert the unique description exists
+      ansible.builtin.assert:
+        that:
+          - post_intf.stdout[0] is search("description {{ tag_prefix }} {{ student_id }}")
+        fail_msg: "Expected description not found on {{ target_interface }}."
+        success_msg: "Unique description verified on {{ target_interface }}."
