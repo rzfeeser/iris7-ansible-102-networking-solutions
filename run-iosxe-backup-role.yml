@@ -1,0 +1,7 @@
+# run-iosxe-backup-role.yml
+- name: Back up Cisco IOS-XE running configs using a role
+  hosts: cisco
+  gather_facts: false
+
+  roles:
+    - iosxe_backup_role
