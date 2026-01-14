@@ -1,0 +1,2 @@
+# roles/iosxe_backup_role/defaults/main.yml
+iosxe_backup_dir: "{{ playbook_dir }}/backups"
