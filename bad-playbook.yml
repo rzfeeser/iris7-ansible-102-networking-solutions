@@ -1,0 +1,16 @@
+# bad-playbook.yml
+- hosts: all
+  gather_facts: yes
+
+  tasks:
+    - name: install packages
+      apt:
+        name: vim
+        state: present
+
+    - name: restart ssh
+      service:
+        name: ssh
+        state: restarted
+
+    - shell: echo "hello world" > /tmp/hello.txt
