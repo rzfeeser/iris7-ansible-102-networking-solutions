@@ -1,0 +1,91 @@
+# iosxe-precheck-change-validate.yml
+- name: IOS-XE playbook pattern - prechecks, change, rollback, validate
+  hosts: cisco
+  gather_facts: false
+
+  vars:
+    tag_prefix: "IRIS7-STUDENT"
+    target_interface: "GigabitEthernet1"
+    desired_description: "{{ tag_prefix }} {{ student_id }} managed by Ansible"
+
+  tasks:
+    - name: Precheck - student_id must be defined
+      ansible.builtin.assert:
+        that:
+          - student_id is defined
+          - student_id | length > 0
+        fail_msg: "student_id is required. Provide -e @student_vars.yml with student_id set."
+        success_msg: "student_id is defined."
+
+    - name: Precheck - ansible_network_os must be Cisco IOS collection value
+      ansible.builtin.assert:
+        that:
+          - ansible_network_os is defined
+          - ansible_network_os == "cisco.ios.ios"
+        fail_msg: "This lab requires ansible_network_os=cisco.ios.ios in network_inventory.ini."
+        success_msg: "ansible_network_os is set for Cisco IOS."
+
+    - name: Precheck - interface name must look valid
+      ansible.builtin.assert:
+        that:
+          - target_interface is match("^(GigabitEthernet|TenGigabitEthernet|Loopback)[0-9/]+$")
+        fail_msg: "target_interface does not look like a valid IOS interface name: {{ target_interface }}"
+        success_msg: "target_interface format looks valid."
+
+    - name: Precheck - device is reachable (show clock)
+      cisco.ios.ios_command:
+        commands:
+          - show clock
+      register: precheck_clock
+
+    - name: Precheck - show clock returned output
+      ansible.builtin.assert:
+        that:
+          - precheck_clock.stdout is defined
+          - precheck_clock.stdout | length > 0
+          - precheck_clock.stdout[0] | length > 0
+        fail_msg: "Device did not return output to 'show clock'. Check connectivity/credentials."
+        success_msg: "Connectivity validated with show clock."
+
+    - name: Change with rollback and post-validation
+      block:
+        - name: Apply a safe, uniquely identifiable interface description
+          cisco.ios.ios_config:
+            parents:
+              - "interface {{ target_interface }}"
+            lines:
+              - "description {{ desired_description }}"
+            match: line
+
+      rescue:
+        - name: Roll back the attempted description change
+          cisco.ios.ios_config:
+            parents:
+              - "interface {{ target_interface }}"
+            lines:
+              - "no description {{ desired_description }}"
+            match: line
+
+        - name: Stop after rollback
+          ansible.builtin.fail:
+            msg: "A failure occurred during the change block. Rollback was executed."
+
+    - name: Postcheck - verify description is present
+      cisco.ios.ios_command:
+        commands:
+          - "show running-config interface {{ target_interface }}"
+      register: post_intf
+
+    - name: Postcheck - assert the description line exists
+      ansible.builtin.assert:
+        that:
+          - post_intf.stdout[0] is search("description {{ tag_prefix }} {{ student_id }}")
+        fail_msg: "Validation failed: expected description not found on {{ target_interface }}."
+        success_msg: "Validation passed: expected description is present on {{ target_interface }}."
+
+    - name: Postcheck - show a validation summary
+      ansible.builtin.debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "Interface: {{ target_interface }}"
+          - "Expected description: description {{ desired_description }}"
