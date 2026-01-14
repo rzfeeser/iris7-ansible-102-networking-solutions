@@ -1,0 +1,20 @@
+# playbook_pokeapi_info.yml
+- name: Test the rzfeeser.pokeapi collection module (pokeapi_info)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Query the PokeAPI for a Pokemon (example: pikachu)
+      rzfeeser.pokeapi.pokeapi_info:
+        resource: pokemon
+        name: pikachu
+      register: poke
+
+    - name: Show a few fields from the response
+      ansible.builtin.debug:
+        msg:
+          - "Name:   {{ poke.pokeapi_data.name | default('unknown') }}"
+          - "ID:     {{ poke.pokeapi_data.id | default('unknown') }}"
+          - "Height: {{ poke.pokeapi_data.height | default('unknown') }}"
+          - "Weight: {{ poke.pokeapi_data.weight | default('unknown') }}"
