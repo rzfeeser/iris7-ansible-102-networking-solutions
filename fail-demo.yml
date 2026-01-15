@@ -1,0 +1,55 @@
+# fail-demo.yml
+- name: Demonstrate intentional failures with ansible.builtin.fail
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    # Set to false after you complete the lab to allow success
+    trigger_intentional_failure: true
+
+  tasks:
+    - name: Guardrail - require student_id to be provided
+      ansible.builtin.fail:
+        msg: "Missing required variable: student_id. Run with -e student_id=student01"
+      when: student_id is not defined or (student_id | length == 0)
+
+    - name: Show the provided student_id
+      ansible.builtin.debug:
+        msg: "student_id is {{ student_id }}"
+
+    - name: Run a simple command (example runtime check)
+      ansible.builtin.command: uname -s
+      register: uname_out
+      changed_when: false
+
+    - name: Guardrail - fail if OS is not Linux
+      ansible.builtin.fail:
+        msg: "This lab expects Linux, but uname returned: {{ uname_out.stdout }}"
+      when: uname_out.stdout != "Linux"
+
+    - name: Demonstrate fail inside a block/rescue sequence
+      block:
+        - name: Simulate a change (create a temp file)
+          ansible.builtin.file:
+            path: "/tmp/{{ student_id }}-fail-lab.txt"
+            state: touch
+
+        - name: Force a failure after the simulated change
+          ansible.builtin.fail:
+            msg: "Intentional failure after change to demonstrate rollback behavior."
+          when: trigger_intentional_failure
+
+      rescue:
+        - name: Roll back the simulated change (remove the temp file)
+          ansible.builtin.file:
+            path: "/tmp/{{ student_id }}-fail-lab.txt"
+            state: absent
+
+        - name: Stop after rollback so we do not continue in an unknown state
+          ansible.builtin.fail:
+            msg: "Rollback executed. Stopping playbook intentionally."
+
+    - name: Success message (reachable only if intentional failure is disabled)
+      ansible.builtin.debug:
+        msg: "Playbook completed successfully. You disabled trigger_intentional_failure."
