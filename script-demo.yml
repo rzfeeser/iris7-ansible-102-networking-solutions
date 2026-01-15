@@ -1,0 +1,23 @@
+# script-demo.yml
+- name: Demonstrate ansible.builtin.script
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Run local system check script on target
+      ansible.builtin.script: system_check.sh
+      register: script_out
+
+    - name: Show script output
+      ansible.builtin.debug:
+        var: script_out.stdout_lines
+
+    - name: Run script again with arguments
+      ansible.builtin.script:
+        cmd: system_check.sh alpha beta gamma
+      register: script_out_args
+
+    - name: Show script output with arguments
+      ansible.builtin.debug:
+        var: script_out_args.stdout_lines
