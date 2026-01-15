@@ -1,0 +1,19 @@
+# test-collection-module.yml
+- name: Test a module packaged in a collection
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create a Starfleet status file via collection module
+      iris7.training.starfleet_status:
+        path: /tmp/starfleet-status.txt
+        ship: "USS Enterprise"
+        registry: "NCC-1701"
+        captain: "James T. Kirk"
+        alert_level: yellow
+      register: result
+
+    - name: Show module results
+      ansible.builtin.debug:
+        var: result
