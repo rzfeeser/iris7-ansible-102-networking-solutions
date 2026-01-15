@@ -1,0 +1,45 @@
+# enterprise-template.yml
+- name: Render a USS Enterprise config using ansible.builtin.template
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    ship:
+      name: "USS Enterprise"
+      registry: "NCC-1701"
+      class: "Constitution"
+      captain: "James T. Kirk"
+      chief_engineer: "Montgomery Scott"
+      mission: "To explore strange new worlds"
+    red_alert: false
+    warp_factor: 6
+    systems:
+      - name: "Impulse"
+        status: "online"
+      - name: "Warp Drive"
+        status: "online"
+      - name: "Transporter"
+        status: "online"
+      - name: "Shields"
+        status: "standby"
+      - name: "Phasers"
+        status: "standby"
+    crew_roster:
+      - role: "First Officer"
+        name: "Spock"
+      - role: "Chief Medical Officer"
+        name: "Leonard McCoy"
+      - role: "Communications"
+        name: "Nyota Uhura"
+      - role: "Helm"
+        name: "Hikaru Sulu"
+      - role: "Navigator"
+        name: "Pavel Chekov"
+
+  tasks:
+    - name: Render Enterprise configuration to /tmp
+      ansible.builtin.template:
+        src: templates/enterprise.conf.j2
+        dest: /tmp/uss-enterprise.conf
+        mode: "0644"
