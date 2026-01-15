@@ -1,0 +1,10 @@
+# hello-runner.yml
+- name: Hello from Ansible Runner
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Say hello
+      ansible.builtin.debug:
+        msg: "Hello from ansible-runner!"
