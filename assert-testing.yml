@@ -1,0 +1,41 @@
+# assert-testing.yml
+- name: Demonstrate testing with ansible.builtin.assert
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    expected_os_family: "Debian"
+    min_memory_mb: 512
+
+  tasks:
+    - name: Precheck - OS family must be Debian-based
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.os_family == expected_os_family
+        fail_msg: >
+          OS family check failed.
+          Expected {{ expected_os_family }}, got {{ ansible_facts.os_family }}.
+        success_msg: "OS family is {{ expected_os_family }}."
+
+    - name: Precheck - system must have sufficient memory
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.memtotal_mb >= min_memory_mb
+        fail_msg: >
+          Insufficient memory.
+          Required at least {{ min_memory_mb }} MB, found {{ ansible_facts.memtotal_mb }} MB.
+        success_msg: "Memory requirement satisfied."
+
+    - name: Simulated task - set a test fact
+      ansible.builtin.set_fact:
+        test_value: 42
+
+    - name: Postcheck - validate test_value was set correctly
+      ansible.builtin.assert:
+        that:
+          - test_value == 42
+        fail_msg: "Postcheck failed: test_value was not set correctly."
+        success_msg: "Postcheck passed: test_value is correct."
+
+    - name: Intentional failing assertion (for learning)
