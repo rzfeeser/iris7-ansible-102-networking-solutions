@@ -1,0 +1,25 @@
+# starfleet-module-demo.yml
+- name: Demo playbook using a custom module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    ship: "USS Enterprise"
+    registry: "NCC-1701"
+    captain: "James T. Kirk"
+    alert_level: "{{ alert_level | default('yellow') }}"
+
+  tasks:
+    - name: Write Starfleet status file using our original module
+      starfleet_status:
+        path: /tmp/starfleet-status.txt
+        ship: "{{ ship }}"
+        registry: "{{ registry }}"
+        captain: "{{ captain }}"
+        alert_level: "{{ alert_level }}"
+      register: result
+
+    - name: Show module return values
+      ansible.builtin.debug:
+        var: result
