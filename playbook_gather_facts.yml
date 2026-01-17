@@ -7,13 +7,15 @@
     - name: Display operating system information
       ansible.builtin.debug:
         msg:
-          - "Hostname: {{ ansible_hostname }}"
+          # ansible has two methods for accessing a variable within ansible_facts
+          - "Hostname: {{ ansible_hostname }}"     # use ansible_ as an entry or ansible_facts.
+          - "Hostname (alt pattern): {{ ansible_facts.hostname }}"
+          - ""
           - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "OS (alt pattern): {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version}}"
+          - ""
           - "Kernel: {{ ansible_kernel }}"
+          - "Kernel (alt pattern): {{ ansible_facts.kernel }}"
+          - ""
           - "Architecture: {{ ansible_architecture }}"
-
-    - name: Display network information
-      ansible.builtin.debug:
-        msg:
-          - "Primary IPv4 address: {{ ansible_default_ipv4.address }}"
-          - "Default interface: {{ ansible_default_ipv4.interface }}"
+          - "Architecture (alt.pattern): {{ ansible_facts.architecture }}"
