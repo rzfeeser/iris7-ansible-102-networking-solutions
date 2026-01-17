@@ -4,6 +4,10 @@
   gather_facts: true
 
   tasks:
+    - name: Display all facts
+      ansible.builtin.debug:
+        var: ansible_facts  # this is the root for all gathered facts from "gather_facts: true"
+
     - name: Display operating system information
       ansible.builtin.debug:
         msg:
