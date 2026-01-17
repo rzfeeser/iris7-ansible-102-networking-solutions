@@ -1,19 +1,19 @@
-   ---
-   - name: Demonstrate Ansible fact gathering
-     hosts: all
-     gather_facts: true
+---
+- name: Demonstrate Ansible fact gathering
+  hosts: all
+  gather_facts: true
 
-     tasks:
-       - name: Display operating system information
-         ansible.builtin.debug:
-           msg:
-             - "Hostname: {{ ansible_hostname }}"
-             - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-             - "Kernel: {{ ansible_kernel }}"
-             - "Architecture: {{ ansible_architecture }}"
+  tasks:
+    - name: Display operating system information
+      ansible.builtin.debug:
+        msg:
+          - "Hostname: {{ ansible_hostname }}"
+          - "OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Kernel: {{ ansible_kernel }}"
+          - "Architecture: {{ ansible_architecture }}"
 
-       - name: Display network information
-         ansible.builtin.debug:
-           msg:
-             - "Primary IPv4 address: {{ ansible_default_ipv4.address }}"
-             - "Default interface: {{ ansible_default_ipv4.interface }}"
+    - name: Display network information
+      ansible.builtin.debug:
+        msg:
+          - "Primary IPv4 address: {{ ansible_default_ipv4.address }}"
+          - "Default interface: {{ ansible_default_ipv4.interface }}"
