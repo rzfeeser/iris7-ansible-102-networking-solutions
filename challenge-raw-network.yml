@@ -1,9 +1,11 @@
 ---
 - name: Challenge Solution - Use raw on starwars group and show listening ports
-  hosts: starwars
+  hosts: skysolo
   gather_facts: false
 
   tasks:
+    # remember, the goal of ansible is not to pass SSH commands
+    # which is what you are doing with the raw module
     - name: Show listening TCP/UDP sockets with ss
       ansible.builtin.raw: "ss -tuln"
       register: ss_out
