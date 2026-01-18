@@ -1,59 +1,82 @@
-# plugins/modules/starfleet_status.py
 #!/usr/bin/python
+# library/starfleet_status.py
 
 from __future__ import annotations
+
 from ansible.module_utils.basic import AnsibleModule
 import os
 
-DOCUMENTATION = r"""
+
+DOCUMENTATION = r'''
 ---
 module: starfleet_status
+
 short_description: Create/update a Starfleet-style status file (demo module)
-description:
-  - Creates or updates a status file with Starfleet-themed fields.
-  - Demonstrates idempotence and structured module returns.
+
+version_added: "1.0.0"
+
+description: Creates or updates a status file with Starfleet-themed fields. Demonstrates module argument parsing, validation, idempotence, and structured returns.
+
 options:
   path:
-    description: Destination path for the status file.
+    description:
+      - Destination file path for the status file.
     required: true
     type: str
   ship:
-    description: Ship name.
+    description:
+      - Starship name to record in the status file.
     required: true
     type: str
   registry:
-    description: Ship registry identifier.
+    description:
+      - Starship registry identifier (NCC-1701)
     required: true
     type: str
   alert_level:
-    description: Alert level.
+    description:
+      - Alert level to record in the status file.
     required: false
     type: str
     default: green
     choices: [green, yellow, red]
   captain:
-    description: Captain name.
+    description:
+      - Captain name to record in the status file.
     required: false
     type: str
-    default: Unknown
-author:
-  - You
-"""
+    default: "Unknown"
 
-RETURN = r"""
+author:
+  - Russell Zachary Feeser (@RZFeeser)
+'''
+
+EXAMPLES = r'''
+# basic usage
+- name: Write a status file
+  starfleet_status:
+    path: /tmp/starfleet-status.txt
+    ship: USS Enterprise
+    registry: NCC-1701
+    alert_level: yellow
+    captain: James T. Kirk
+'''
+
+RETURN = r'''
 changed:
   description: Whether the module made a change.
   type: bool
 msg:
-  description: Human-readable message.
+  description: Human-readable result.
   type: str
 written_path:
-  description: File path written/verified.
+  description: Path to the file written/verified.
   type: str
 content:
-  description: Final rendered content.
+  description: Final content of the status file.
   type: str
-"""
+'''
+
 
 def build_content(ship: str, registry: str, alert_level: str, captain: str) -> str:
   return (
@@ -62,53 +85,55 @@ def build_content(ship: str, registry: str, alert_level: str, captain: str) -> s
     f"SHIP        : {ship}\n"
     f"REGISTRY    : {registry}\n"
     f"CAPTAIN     : {captain}\n"
-    f"ALERT LEVEL : {alert_level.upper()}\n"
+    f"ALERT LEVEL : {alert_level}\n"
   )
 
-def main() -> None:
-  module = AnsibleModule(
-    argument_spec=dict(
-      path=dict(type="str", required=True),
-      ship=dict(type="str", required=True),
-      registry=dict(type="str", required=True),
-      alert_level=dict(type="str", default="green", choices=["green", "yellow", "red"]),
-      captain=dict(type="str", default="Unknown"),
-    ),
-    supports_check_mode=True,
+
+def run_module() -> None:
+  module_args = dict(
+    path=dict(type="str", required=True),
+    ship=dict(type="str", required=True),
+    registry=dict(type="str", required=True),
+    alert_level=dict(type="str", required=False, default="green", choices=["green", "yellow", "red"]),
+    captain=dict(type="str", required=False, default="Unknown"),
   )
+
+  module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
   path = module.params["path"]
-  desired = build_content(
-    module.params["ship"],
-    module.params["registry"],
-    module.params["alert_level"],
-    module.params["captain"],
-  )
+  ship = module.params["ship"]
+  registry = module.params["registry"]
+  alert_level = module.params["alert_level"].upper()
+  captain = module.params["captain"]
 
+  desired = build_content(ship, registry, alert_level, captain)
+
+  # Read existing content if present
   existing = ""
   if os.path.exists(path):
     try:
       with open(path, "r", encoding="utf-8") as f:
         existing = f.read()
     except Exception as e:
-      module.fail_json(msg=f"Failed to read {path}: {e}")
+      module.fail_json(msg=f"Failed to read existing file {path}: {e}")
 
-  changed = existing != desired
+  changed = (existing != desired)
 
   if module.check_mode:
     module.exit_json(
       changed=changed,
-      msg="Check mode: would update status file." if changed else "Check mode: status already correct.",
+      msg="Check mode: would update status file." if changed else "Check mode: status file already correct.",
       written_path=path,
       content=desired,
     )
 
+  # Write only if needed (idempotence)
   if changed:
     try:
       with open(path, "w", encoding="utf-8") as f:
         f.write(desired)
     except Exception as e:
-      module.fail_json(msg=f"Failed to write {path}: {e}")
+      module.fail_json(msg=f"Failed to write file {path}: {e}")
 
   module.exit_json(
     changed=changed,
@@ -117,5 +142,11 @@ def main() -> None:
     content=desired,
   )
 
-if __name__ == "__main__":
-  main()
+
+
+
+def main() -> None:
+  run_module()
+
+if __name__ == '__main__':
+    main()
