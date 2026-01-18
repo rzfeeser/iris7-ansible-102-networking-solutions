@@ -8,7 +8,7 @@
     ship: "USS Enterprise"
     registry: "NCC-1701"
     captain: "James T. Kirk"
-    alert_level: "{{ alert_level | default('yellow') }}"
+    alert_level: "green"   # green, yellow or red
 
   tasks:
     - name: Write Starfleet status file using our original module
