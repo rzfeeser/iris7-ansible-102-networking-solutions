@@ -1,5 +1,5 @@
 ---
-- name: Playbook 2 - Reuse vars_files data to produce a summary report
+- name: Looping with vars_files data
   hosts: all
   gather_facts: false
 
@@ -7,25 +7,19 @@
     - vars/loops-data.yml
 
   tasks:
-    - name: Build a list of usernames using set_fact
-      ansible.builtin.set_fact:
-        usernames: "{{ (usernames | default([])) + [item.name] }}"
+    - name: Display the names from users
+      ansible.builtin.debug:
+        var: item.name
       loop: "{{ users }}"
 
-    - name: Build a comma-separated string of usernames
-      ansible.builtin.set_fact:
-        usernames_csv: "{{ (usernames | default([])) | join(', ') }}"
-
-    - name: Build a list of "service=port" strings from the map
-      ansible.builtin.set_fact:
-        port_pairs: "{{ (port_pairs | default([])) + [item.key ~ '=' ~ (item.value | string)] }}"
-      loop: "{{ ports_map | dict2items }}"
-
-    - name: Display a summary report using debug
+    - name: Display the shells from users
       ansible.builtin.debug:
-        msg:
-          - "Apps list length: {{ apps_common | length }}"
-          - "Usernames: {{ usernames_csv }}"
-          - "Port pairs: {{ port_pairs | join(', ') }}"
-          - "First site URL: {{ (sites | first).url }}"
+        var: item.shell
+      loop: "{{ users }}"
 
+     # Using a jinja filter "| dict2items" is costly re: speed / processing
+     # Whenever possible, normalize input data to prevent needing this
+    - name: Loop across a dictionary (you must use a jinja filter to transform the data)
+      ansible.builtin.debug:
+        var: item
+      loop: "{{ ports_map | dict2items }}"
