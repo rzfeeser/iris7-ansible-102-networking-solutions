@@ -1,5 +1,5 @@
 ---
-- name: Lab - command vs shell
+- name: Exploring command vs shell
   hosts: all
   gather_facts: false
 
@@ -12,17 +12,24 @@
       ansible.builtin.debug:
         msg: "{{ uname_out.stdout }}"
 
+    # the | is a wildcard character in linux and only supported
+    # through a shell-- command is not a shell environment
+    # therefore this task will fail
     - name: command example - pipe will fail (no shell)
       ansible.builtin.command: "ip addr | head -n 3"
       register: cmd_pipe
-      ignore_errors: true
+      ignore_errors: true  # this is a task keyword (not a module keyword)
 
+    # In the below task, the | default() is not a linux command, but a jinja filter
+    # the {{  }} denotes what is inside is a variable expression
+    # the | default() modifies that varaible via the jinja variable subsystem
     - name: Show command pipe failure
       ansible.builtin.debug:
         msg:
           - "command return code: {{ cmd_pipe.rc | default('n/a') }}"
           - "command stderr: {{ cmd_pipe.stderr | default('') }}"
 
+    # if we rerun the same command with shell, it works!
     - name: shell example - pipe works
       ansible.builtin.shell: "ip addr | head -n 3"
       register: shell_pipe
@@ -52,4 +59,3 @@
         msg:
           - "This task will only run once because creates prevents repeat execution."
           - "Return code: {{ creates_demo.rc | default('n/a') }}"
-
