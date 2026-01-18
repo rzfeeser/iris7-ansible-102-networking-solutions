@@ -1,5 +1,5 @@
-# library/starfleet_status.py
 #!/usr/bin/python
+# library/starfleet_status.py
 
 from __future__ import annotations
 
@@ -7,13 +7,16 @@ from ansible.module_utils.basic import AnsibleModule
 import os
 
 
-DOCUMENTATION = r"""
+DOCUMENTATION = r'''
 ---
 module: starfleet_status
+
 short_description: Create/update a Starfleet-style status file (demo module)
-description:
-  - Creates or updates a status file with Starfleet-themed fields.
-  - Demonstrates module argument parsing, validation, idempotence, and structured returns.
+
+version_added: "1.0.0"
+
+description: Creates or updates a status file with Starfleet-themed fields. Demonstrates module argument parsing, validation, idempotence, and structured returns.
+
 options:
   path:
     description:
@@ -27,7 +30,7 @@ options:
     type: str
   registry:
     description:
-      - Starship registry identifier (example: NCC-1701).
+      - Starship registry identifier (NCC-1701)
     required: true
     type: str
   alert_level:
@@ -43,11 +46,13 @@ options:
     required: false
     type: str
     default: "Unknown"
-author:
-  - You
-"""
 
-EXAMPLES = r"""
+author:
+  - Russell Zachary Feeser (@RZFeeser)
+'''
+
+EXAMPLES = r'''
+# basic usage
 - name: Write a status file
   starfleet_status:
     path: /tmp/starfleet-status.txt
@@ -55,9 +60,9 @@ EXAMPLES = r"""
     registry: NCC-1701
     alert_level: yellow
     captain: James T. Kirk
-"""
+'''
 
-RETURN = r"""
+RETURN = r'''
 changed:
   description: Whether the module made a change.
   type: bool
@@ -70,7 +75,7 @@ written_path:
 content:
   description: Final content of the status file.
   type: str
-"""
+'''
 
 
 def build_content(ship: str, registry: str, alert_level: str, captain: str) -> str:
@@ -80,7 +85,7 @@ def build_content(ship: str, registry: str, alert_level: str, captain: str) -> s
     f"SHIP        : {ship}\n"
     f"REGISTRY    : {registry}\n"
     f"CAPTAIN     : {captain}\n"
-    f"ALERT LEVEL : {alert_level.upper()}\n"
+    f"ALERT LEVEL : {alert_level}\n"
   )
 
 
@@ -98,7 +103,7 @@ def run_module() -> None:
   path = module.params["path"]
   ship = module.params["ship"]
   registry = module.params["registry"]
-  alert_level = module.params["alert_level"]
+  alert_level = module.params["alert_level"].upper()
   captain = module.params["captain"]
 
   desired = build_content(ship, registry, alert_level, captain)
@@ -138,9 +143,10 @@ def run_module() -> None:
   )
 
 
+
+
 def main() -> None:
   run_module()
 
-
-if __name__ == "__main__":
-  main()
+if __name__ == '__main__':
+    main()
