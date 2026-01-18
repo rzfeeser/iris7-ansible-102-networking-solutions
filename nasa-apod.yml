@@ -1,0 +1,66 @@
+---
+- name: NASA APOD with token access
+  hosts: localhost
+  connection: ansible.builtin.local
+  gather_facts: false
+
+  vars:
+    apod_base_url: "https://api.nasa.gov/planetary/apod"  # available on the api.nasa.gov website
+    apod_date: ""
+
+  tasks:
+    # assert is how we "test"
+    # this is a best-practice example of confirming input
+    - name: Ensure NASA API key was provided via CLI
+      ansible.builtin.assert:
+        that:
+          - nasa_api_key is defined
+          - nasa_api_key | length > 5
+        fail_msg: "You must pass the API key via CLI. Example: ansible-playbook nasa-apod.yml -e \"nasa_api_key=$NASA_API_KEY\""
+        success_msg: "NASA API key detected. Proceeding with APOD request."
+
+    # set_fact allows us to create a new variable
+    # in this case, "apod_url" is being defined
+    - name: Build APOD URL (optionally include date)
+      ansible.builtin.set_fact:
+        apod_url: "{{ apod_base_url }}?api_key={{ nasa_api_key }}"
+
+    # use a when conditional to add date when it is defined
+    - name: Add date to URL if it was passed
+      ansible.builtin.set_fact:
+        apod_url: "{{ apod_url }}&date={{ apod_date }}"
+      when:
+        - apod_date is defined     # when is like an "if" statement
+        - apod_date | trim | length > 0
+
+    - name: Request APOD from NASA
+      ansible.builtin.uri:
+        url: "{{ apod_url }}"
+        method: GET
+        return_content: true
+        status_code:
+          - 200
+      register: apod_result    # save what is passed back (task level)
+
+    - name: Validate APOD response shape
+      ansible.builtin.assert:
+        that:
+          - apod_result.json is defined
+          - apod_result.json.title is defined
+          - apod_result.json.date is defined
+          - apod_result.json.url is defined
+          - apod_result.json.media_type is defined
+        success_msg: "APOD API call succeeded and returned expected fields."
+        fail_msg: "APOD API call did not return expected fields."
+
+    - name: Display key APOD fields
+      ansible.builtin.debug:
+        msg:
+          - "Date: {{ apod_result.json.date }}"
+          - "Title: {{ apod_result.json.title }}"
+          - "Media type: {{ apod_result.json.media_type }}"
+          - "URL: {{ apod_result.json.url }}"
+
+    - name: Display explanation preview (first 240 chars)
+      ansible.builtin.debug:
+        msg: "{{ (apod_result.json.explanation | default(''))[:240] }}..."
