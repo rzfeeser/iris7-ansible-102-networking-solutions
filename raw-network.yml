@@ -1,5 +1,5 @@
 ---
-- name: Lab - Network checks using ansible.builtin.raw
+- name: Network checks using ansible.builtin.raw
   hosts: skysolo
   gather_facts: false
 
@@ -30,6 +30,6 @@
     - name: Show that raw does not enforce state
       ansible.builtin.debug:
         msg:
-          - "This task will report a change every time because raw does not check state."
+          - "A raw task will report a change every time an rc code is 0 (otherwise it's a failure)."
           - "Return code: {{ append_test.rc }}"
 
