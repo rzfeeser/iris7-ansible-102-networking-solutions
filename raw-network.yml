@@ -1,6 +1,6 @@
 ---
 - name: Lab - Network checks using ansible.builtin.raw
-  hosts: all
+  hosts: skysolo
   gather_facts: false
 
   tasks:
