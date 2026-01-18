@@ -1,5 +1,5 @@
 ---
-- name: Playbook 1 - Loop patterns + debug + set_fact
+- name: Loop patterns + debug + set_fact
   hosts: all
   gather_facts: false
 
