@@ -12,7 +12,7 @@
       captain: "James T. Kirk"
       chief_engineer: "Montgomery Scott"
       mission: "To explore strange new worlds"
-    red_alert: false
+    red_alert: ""
     warp_factor: 6
     systems:
       - name: "Impulse"
