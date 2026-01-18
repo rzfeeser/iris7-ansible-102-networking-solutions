@@ -25,16 +25,11 @@
         success_msg: "ansible_network_os is defined."
 
   tasks:
-    - name: Gather normalized network facts (when supported)
-      ansible.netcommon.network_facts:
-      register: nfacts
-
     - name: Show a few normalized facts
       ansible.builtin.debug:
         msg:
           - "Host: {{ inventory_hostname }}"
           - "IP:   {{ ansible_host }}"
-          - "Facts keys: {{ (nfacts.ansible_facts.keys() | list) if (nfacts.ansible_facts is defined) else [] }}"
 
     - name: Run vendor-agnostic show commands
       ansible.netcommon.cli_command:
