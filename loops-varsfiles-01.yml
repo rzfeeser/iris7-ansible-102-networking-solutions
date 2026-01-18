@@ -7,6 +7,14 @@
     - vars/loops-data.yml
 
   tasks:
+    - name: Example 0 - Use a static list
+      ansible.builtin.debug:
+        var: item
+      loop:
+       - "the loop keyword"
+       - "may only be passed a list"
+       - "anything else will result in an error"
+      
     - name: Example 1 - Show each app from a list
       ansible.builtin.debug:
         msg: "Installing app (demo): {{ item }}"
@@ -22,12 +30,5 @@
         msg: "Service: {{ item.key }} | Port: {{ item.value }}"
       loop: "{{ ports_map | dict2items }}"
 
-    - name: Example 4 - Build a list of site URLs using set_fact
-      ansible.builtin.set_fact:
-        site_urls: "{{ (site_urls | default([])) + [item.url] }}"
-      loop: "{{ sites }}"
 
-    - name: Example 4 - Display the computed list created by set_fact
-      ansible.builtin.debug:
-        var: site_urls
 
