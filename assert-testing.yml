@@ -37,5 +37,3 @@
           - test_value == 42
         fail_msg: "Postcheck failed: test_value was not set correctly."
         success_msg: "Postcheck passed: test_value is correct."
-
-    - name: Intentional failing assertion (for learning)
