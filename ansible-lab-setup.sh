@@ -101,7 +101,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install SSH server and common tools. This prepares the container to be managed like a tiny VM by Ansible.
 RUN apt-get update && apt-get install -y --no-install-recommends \\
-    openssh-server sudo python3 ca-certificates \\
+    iproute2 openssh-server sudo python3 ca-certificates \\
   && rm -rf /var/lib/apt/lists/*
 
 # Create SSH runtime directory and a non-root user. Ansible commonly uses a normal user with sudo for privilege escalation.
@@ -132,7 +132,7 @@ FROM quay.io/centos/centos:stream9
 
 # Install SSH server and Python. Python is needed for most Ansible modules to work smoothly on the target.
 RUN dnf -y update && dnf -y install \\
-    openssh-server sudo python3 \\
+    iproute openssh-server sudo python3 \\
   && dnf clean all
 
 # Initialize SSH host keys. Containers don't come with host keys by default, so we generate them once at build time.
