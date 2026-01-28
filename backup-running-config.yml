@@ -4,7 +4,7 @@
   gather_facts: false
 
   vars:
-    backup_dir: "{{ playbook_dir }}/backups/running-configs"
+    backup_dir: "{{ playbook_dir }}/backup/running-configs"
 
   tasks:
     - name: Ensure local backup directory exists on controller
