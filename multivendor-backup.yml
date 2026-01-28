@@ -4,7 +4,7 @@
   gather_facts: false
 
   vars:
-    backup_root: "{{ playbook_dir }}/backups"
+    backup_root: "{{ playbook_dir }}/backup"
 
   pre_tasks:
     - name: Ensure local backup directory exists on controller
