@@ -10,3 +10,12 @@
 - name: Back up running configuration to the controller (Ansible-managed backup file)
   cisco.ios.ios_config:
     backup: true
+    backup_options:
+      dir_path: "{{ iosxe_backup_dir }}"
+
+- name: Compress backup directory
+  community.general.archive:
+    path: "{{ iosxe_backup_dir }}"
+    dest: "{{ iosxe_backup_dir }}.tgz"
+  delegate_to: localhost
+  run_once: true
