@@ -1,4 +1,4 @@
 # roles/iosxe_backup_role/defaults/main.yml
 
 # playbook_dir is a "magic variable" that will always reflect the directory the playbook is in
-iosxe_backup_dir: "{{ playbook_dir }}/backups"
+iosxe_backup_dir: "{{ playbook_dir }}/backup"
